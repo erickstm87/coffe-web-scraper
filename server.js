@@ -1,16 +1,27 @@
-const express = require('express');
-const cheerio = require('cheerio');
+"use strict"
+
+const req = require('tinyreq');
 const fs = require('fs');
-const request = require('request');
-var app = express();
+const cheerio = require('cheerio');
 
-app.get('/scrape', () => {
+function scrape(url, data, cb)
+{
+  req(url, (err, body) => {
+    if(err){ return cb(err);}
+    let $ = cheerio.load(body),
+        pageData = {};
 
-})
+    Object.keys(data).forEach(k => {
+      pageData[k] = $(data[k]).eq(0).text().trim();
+    })
 
-app.listen('8081');
+    cb(null, pageData);
+  });
+}
 
-console.log('here\'s the magic on port 8081');
-
-exports = module.exports = app;
-//comment
+scrape('http://www.coffeereview.com/types/espresso/', {
+  title: '.archive-title',
+  data: '.review-col2 p'
+}, (err, data) => {
+    console.log(err || data);
+});
